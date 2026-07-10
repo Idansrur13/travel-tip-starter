@@ -21,6 +21,7 @@ window.app = {
 function onInit() {
     getFilterByFromQueryParams()
     loadAndRenderLocs()
+    mapService.loadUserPosIfKnown().then(() => loadAndRenderLocs())
     mapService.initMap()
         .then(() => {
             // onPanToTokyo()
@@ -34,12 +35,13 @@ function onInit() {
 
 function renderLocs(locs) {
     const selectedLocId = getLocIdFromQueryParams()
+    const userPos = mapService.getLastUserPos()
 
     var strHTML = locs.map(loc => {
         const className = (loc.id === selectedLocId) ? 'active' : ''
         return `
         <li class="loc ${className}" data-id="${loc.id}">
-            <h4>  
+            <h4>
                 <span>${loc.name}</span>
                 <span title="${loc.rate} stars">${'★'.repeat(loc.rate)}</span>
             </h4>
@@ -49,7 +51,8 @@ function renderLocs(locs) {
                 ` | Updated: ${utilService.elapsedTime(loc.updatedAt)}`
                 : ''}
             </p>
-            <div class="loc-btns">     
+            ${userPos ? `<p class="muted">Distance from user: ${utilService.getDistance(userPos, loc.geo, 'K')} km</p>` : ''}
+            <div class="loc-btns">
                <button title="Delete" onclick="app.onRemoveLoc('${loc.id}')">🗑️</button>
                <button title="Edit" onclick="app.onUpdateLoc('${loc.id}')">✏️</button>
                <button title="Select" onclick="app.onSelectLoc('${loc.id}')">🗺️</button>

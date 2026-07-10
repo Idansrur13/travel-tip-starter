@@ -2,6 +2,8 @@
 export const mapService = {
     initMap,
     getUserPosition,
+    loadUserPosIfKnown,
+    getLastUserPos,
     setMarker,
     panTo,
     lookupAddressGeo,
@@ -12,6 +14,7 @@ export const mapService = {
 const API_KEY = 'AIzaSyD89FSIUPShF_UwiT8WUZLiwK8EQMClDWE'
 var gMap
 var gMarker
+var gUserPos = null // { lat, lng } once known, else null
 
 function initMap(lat = 32.0749831, lng = 34.9120554) {
     return _connectGoogleApi()
@@ -84,10 +87,27 @@ function getUserPosition() {
                 lat: res.coords.latitude,
                 lng: res.coords.longitude
             }
+            gUserPos = latLng
             resolve(latLng)
         }
         navigator.geolocation.getCurrentPosition(onSuccess, reject)
     })
+}
+
+function getLastUserPos() {
+    return gUserPos
+}
+
+// Checks geolocation permission state without prompting; only fetches
+// (and caches) the position if permission was already granted earlier.
+function loadUserPosIfKnown() {
+    if (!navigator.permissions) return Promise.resolve(null)
+    return navigator.permissions.query({ name: 'geolocation' })
+        .then(status => {
+            if (status.state !== 'granted') return null
+            return getUserPosition().catch(() => null)
+        })
+        .catch(() => null)
 }
 
 function _connectGoogleApi() {
