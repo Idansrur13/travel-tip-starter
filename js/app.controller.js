@@ -1,11 +1,8 @@
 import { utilService } from './services/util.service.js'
 import { locService } from './services/loc.service.js'
 import { mapService } from './services/map.service.js'
-import { closeModal } from './modal.js'
 
 window.onload = onInit
-let gAddedGeo = null
-let gEditedLoc = null // null = add mode, loc object = edit mode
 
 // To make things easier in this project structure
 // functions that are called from DOM are defined on a global app object
@@ -19,14 +16,9 @@ window.app = {
   onShareLoc,
   onSetSortBy,
   onSetFilterBy,
-  closeModal,
-  onSaveLoc,
 }
 
 function onInit() {
-  document.querySelector('.modal-bg').addEventListener('click', (ev) => {
-    if (ev.target === ev.currentTarget) closeModal()
-  })
   getFilterByFromQueryParams()
   loadAndRenderLocs()
   mapService.loadUserPosIfKnown().then(() => loadAndRenderLocs())
@@ -117,69 +109,26 @@ function onSearchAddress(ev) {
 }
 
 function onAddLoc(geo) {
-  gEditedLoc = null
-  gAddedGeo = geo
-  openLocModal({
-    address: geo.address ?? '',
-    name: geo.address ?? '',
-    rate: 3,
-  })
-}
+  const locName = prompt('Loc name', geo.address || 'Just a place')
+  if (!locName) return
 
-// One modal for both add and update
-function openLocModal({ address, name, rate }) {
-  document.querySelector('.modal-loc').innerText = address
-
-  const elForm = document.querySelector('.modal-location')
-  elForm['loc-name'].value = name
-  elForm['loc-rate'].value = rate
-
-  const bgModal = document.querySelector('.modal-bg')
-  bgModal.style.opacity = 1
-  bgModal.style.zIndex = 10
-}
-
-export function onSaveLoc(locForm) {
-  const name = locForm['loc-name'].value
-  const rate = Number(locForm['loc-rate'].value)
-  if (!name) return
-
-  let loc
-  if (gEditedLoc) {
-    // Edit mode - update the existing loc (keeps id, geo, createdAt)
-    gEditedLoc.name = name
-    gEditedLoc.rate = rate
-    loc = gEditedLoc
-  } else {
-    // Add mode - create a new loc
-    loc = { name, rate, geo: gAddedGeo }
+  const loc = {
+    name: locName,
+    rate: +prompt(`Rate (1-5)`, '3'),
+    geo,
   }
-
   locService
     .save(loc)
     .then((savedLoc) => {
-      closeModal()
-      flashMsg(
-        gEditedLoc ? 'Location updated' : `Added Location (id: ${savedLoc.id})`,
-      )
-      gEditedLoc = null
+      flashMsg(`Added Location (id: ${savedLoc.id})`)
       utilService.updateQueryParams({ locId: savedLoc.id })
       loadAndRenderLocs()
     })
     .catch((err) => {
       console.error('OOPs:', err)
-      flashMsg('Cannot save location')
+      flashMsg('Cannot add location')
     })
 }
-
-// function setStars(count = 0) {
-//     const modalStarsEl = document.querySelector('.location-stars')
-
-//     for (let i = 0; i < 5; i++) {
-//       const starEl += `<star/>`;
-
-//     }
-// }
 
 function loadAndRenderLocs() {
   locService
@@ -207,20 +156,22 @@ function onPanToUserPos() {
 }
 
 function onUpdateLoc(locId) {
-  locService
-    .getById(locId)
-    .then((loc) => {
-      gEditedLoc = loc
-      openLocModal({
-        address: loc.geo.address,
-        name: loc.name,
-        rate: loc.rate,
-      })
-    })
-    .catch((err) => {
-      console.error('OOPs:', err)
-      flashMsg('Cannot update location')
-    })
+  locService.getById(locId).then((loc) => {
+    const rate = +prompt('New rate?', loc.rate)
+    if (rate && rate !== loc.rate) {
+      loc.rate = rate
+      locService
+        .save(loc)
+        .then((savedLoc) => {
+          flashMsg(`Rate was set to: ${savedLoc.rate}`)
+          loadAndRenderLocs()
+        })
+        .catch((err) => {
+          console.error('OOPs:', err)
+          flashMsg('Cannot update location')
+        })
+    }
+  })
 }
 
 function onSelectLoc(locId) {
@@ -234,6 +185,7 @@ function onSelectLoc(locId) {
 }
 
 function displayLoc(loc) {
+  console.log(loc)
   document.querySelector('.loc.active')?.classList?.remove('active')
   document.querySelector(`.loc[data-id="${loc.id}"]`).classList.add('active')
 
