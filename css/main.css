@@ -2,6 +2,7 @@
 @import url(base/base.css);
 @import url(cmps/user-msg.css);
 @import url(cmps/locs.css);
+@import url(cmps/modal.css);
 @import url(cmps/selected-loc.css);
 
 @media (min-width: 750px) {
@@ -9,8 +10,8 @@
         display: flex;
         flex-direction: row-reverse;
     }
+
     .locs-container {
         width: 30vw;
     }
 }
-

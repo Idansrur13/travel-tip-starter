@@ -1,0 +1,28 @@
+.modal-location {
+    height: 400px;
+    width: 400px;
+    background-color: #644363;
+    z-index: 20;
+    padding: 20px;
+    border-radius: 20px;
+
+
+}
+
+.location-stars {
+    border: 1px solid #f5f1f4;
+    background-color: #fff;
+}
+
+.modal-bg {
+    position: absolute;
+    height: 100vh;
+    width: 100vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(4px);
+    opacity: 0;
+    z-index: -1;
+    background-color: #0000004d;
+}
