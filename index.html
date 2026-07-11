@@ -47,6 +47,7 @@
                         <select class="sort-by" onchange="app.onSetSortBy()">
                             <option value="name">Name</option>
                             <option value="rate" selected>Rate</option>
+                            <option value="Date" selected>Created time</option>
                         </select>
                         <label>
                             <input class="sort-desc" type="checkbox" oninput="app.onSetSortBy()" />
@@ -65,6 +66,18 @@
                     </div>
                 </section>
             </section>
+        </div>
+        <div class="modal-bg">
+            <form class="modal-location" onsubmit="app.onSaveLoc(this); return false">
+                <p class="modal-loc"></p>
+                <label>Geo place
+                    <input type="text" name="loc-name" placeholder="Location name" />
+                </label>
+                <label>Rate 1 - 5
+                    <input type="range" name="loc-rate" min="1" max="5" value="3" />
+                </label>
+                <button type="submit">שמור</button>
+            </form>
         </div>
     </main>
     <pre class="debug" hidden></pre>
